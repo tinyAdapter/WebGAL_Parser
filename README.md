@@ -1,2 +1,2 @@
 # WebGAL_Parser
-WebGAL Parser - The Next Generation
+WebGAL Parser: The Next Generation
