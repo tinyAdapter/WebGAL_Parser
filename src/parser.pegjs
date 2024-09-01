@@ -48,6 +48,8 @@
     }
 }}
 
+// ----- Entrypoint -----
+
 Start
     = __ program:Program __ EOF { return program; }
 
@@ -64,6 +66,8 @@ SourceElements
 SourceElement "source element"
     = Statement
     // / FunctionDeclaration
+
+// ----- Arguments -----
 
 ArgList "arguments"
     = head:Arg tail:(__ Arg)* {
@@ -99,24 +103,32 @@ Keyword
 ArgKeyword
     = NextToken
     / LeftToken
-    / "url"
+    / TransformToken
 
-NextToken "'next'"
-    = @"next" !IdentifierPart
+NextToken       "'next'"        = @"next"       !IdentifierPart
+LeftToken       "'left'"        = @"left"       !IdentifierPart
+ChangeBgToken   "'changeBg'"    = @"changeBg"   !IdentifierPart
+TransformToken  "'transform'"   = @"transform"  !IdentifierPart
 
-LeftToken "'left'"
-    = @"left" !IdentifierPart
-
-ChangeBgToken "'changeBg'"
-    = "changeBg" !IdentifierPart
+// ----- String -----
 
 StringLiteral "string"
-    = '"' @$DoubleStringCharacter* '"'
-    / $StringCharacter*
+    = "'" sequence:SingleStringCharacter* "'" { return sequence.join(""); }
+    / '"' sequence:DoubleStringCharacter* '"' { return sequence.join(""); }
+    / sequence:StringCharacter* { return sequence.join("") }
+
+SingleStringCharacter
+    = !("'" / "\\" / LineTerminator) SourceCharacter { return text(); }
+    / "\\" sequence:EscapeSequence { return sequence; }
 
 DoubleStringCharacter
     = !('"' / "\\" / LineTerminator) SourceCharacter { return text(); }
     / "\\" sequence:EscapeSequence { return sequence; }
+
+StringCharacter
+    = !(LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
+
+// ----- String: Escape -----
 
 EscapeSequence
     = CharacterEscapeSequence
@@ -161,27 +173,7 @@ UnicodeEscapeSequence
         return String.fromCharCode(parseInt(digits, 16));
     }
 
-StringCharacter
-    = !(LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
-
-LineTerminator "line terminator"
-    = [\n\r\u2028\u2029]
-
-LineTerminatorSequence "end of line"
-    = "\n"
-    / "\r\n"
-    / "\r"
-    / "\u2028"
-    / "\u2029"
-
-WhiteSpace "whitespace"
-    = "\t"
-    / "\v"
-    / "\f"
-    / " "
-    / "\u00A0"
-    / "\uFEFF"
-    / Zs
+// ----- Identifier -----
 
 IdentifierStart
     = UnicodeLetter
@@ -218,8 +210,29 @@ UnicodeDigit
 UnicodeConnectorPunctuation
     = Pc
 
+// ----- Character, Space & Line Terminators -----
+
 SourceCharacter
     = .
+
+LineTerminator "line terminator"
+    = [\n\r\u2028\u2029]
+
+LineTerminatorSequence "end of line"
+    = "\n"
+    / "\r\n"
+    / "\r"
+    / "\u2028"
+    / "\u2029"
+
+WhiteSpace "whitespace"
+    = "\t"
+    / "\v"
+    / "\f"
+    / " "
+    / "\u00A0"
+    / "\uFEFF"
+    / Zs
 
 __
     = (WhiteSpace / LineTerminatorSequence)*

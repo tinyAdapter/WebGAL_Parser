@@ -10,11 +10,14 @@ import * as p from "./parser";
 // unlockCg:xgmain.jpeg -name=星光咖啡馆与死神之蝶;`
 
 const INPUT = `
-changeBg:one.jpg -url="https://example-url.com" -next; 双引号字符串允许包含任何特殊字符
-changeBg:one.jpg -url="; 不匹配的引号不会被解析为双引号字符串
-changeBg:one.jpg -url="\\""; 允许转义
-changeBg:another.jpg -next=true; 不含双引号的值直接解析
-changeBg:three.jpg -next -left="none" ; 测试多个参数`
+changeBg:1.jpg -left="https://example-url.com" -next; 引号字符串允许包含任何特殊字符
+changeBg:2.jpg -left="                              ; 不匹配的引号不会被解析为引号字符串
+changeBg:3.jpg -transform='{"hello": "world"}'      ; JSON字符串
+changeBg:4.jpg -transform={"hello": "world"}        ; 不加单引号也可以
+; changeBg:5.jpg -transform="{"hello": "world"}"    ; 显然这个会解析失败
+changeBg:6.jpg -transform="{\\"hello\\": \\"world\\"}"  ; 但引号字符串支持转义又比较好地弥补了这一点
+changeBg:7.jpg -next=true                           ; 不含引号的值直接解析
+changeBg:8.jpg -next -left="none"                   ; 测试多个参数`
 
 console.log("input: ")
 console.log("-".repeat(80))
