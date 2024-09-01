@@ -9,7 +9,7 @@
         "build-ci": "rollup --config",
         "debug": "tsx test/debug.ts",
         "dev": "tsx src/index.ts",
-        "parser": "npx peggy -o src/parser.js --format es src/parser.peggy -m"
+        "parser": "npx peggy -o src/parser.js --format es src/parser.pegjs -m"
     },
     "types": "./build/types/index.d.ts",
     "module": "./build/es/index.js",
