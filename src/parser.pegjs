@@ -46,6 +46,18 @@
     function optionalList(value) {
         return value !== null ? value : [];
     }
+
+    function processVocalFileName(args) {
+        return args.map((arg) => {
+            if (arg.key.toLowerCase().match(/.ogg|.mp3|.wav/)) {
+                return {
+                    key: "vocal",
+                    value: arg.key
+                };
+            }
+            return arg;
+        });
+    }
 }}
 
 // ----- Entrypoint -----
@@ -84,31 +96,45 @@ ArgBody
     = @ArgWithValue / @ArgWithoutValue
 
 ArgWithValue "argument with value"
-    = key:ArgKeyword "=" value:StringLiteral {
+    = key:ArgKey "=" value:StringLiteral {
         return { key, value };
     }
 
 ArgWithoutValue "argument without value"
-    = key:ArgKeyword {
+    = key:ArgKey {
         return { key, value: true };
     }
 
+// ----- Reserved Words & Tokens -----
+
 ReservedWord "reserve word"
     = Keyword
-    / ArgKeyword
+    // / ArgKeyword
 
 Keyword
     = ChangeBgToken
 
-ArgKeyword
-    = NextToken
-    / LeftToken
-    / TransformToken
-
-NextToken       "'next'"        = @"next"       !IdentifierPart
-LeftToken       "'left'"        = @"left"       !IdentifierPart
 ChangeBgToken   "'changeBg'"    = @"changeBg"   !IdentifierPart
-TransformToken  "'transform'"   = @"transform"  !IdentifierPart
+
+/*
+Currently, we do not need to check all argument keys. But the key should be
+more strict than the value, e.g., do not allow symbols and special characters,
+and should not be empty.
+*/
+ArgKey
+    = $KeyCharacter+
+
+KeyCharacter
+    = !("=" / WhiteSpace / LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
+
+// ArgKeyword
+//     = NextToken
+//     / LeftToken
+//     / TransformToken
+
+// NextToken       "'next'"        = @"next"       !IdentifierPart
+// LeftToken       "'left'"        = @"left"       !IdentifierPart
+// TransformToken  "'transform'"   = @"transform"  !IdentifierPart
 
 // ----- String -----
 
@@ -254,6 +280,8 @@ EOF
 Statement "statement"
     = EmptyStatement
     / ChangeBgStatement
+// if all commands failed, it should be a say statement (either with or without ':')
+    / SayStatement
 
 EmptyStatement
     = __ ";" Comment LineTerminatorSequence {
@@ -270,6 +298,32 @@ ChangeBgStatement "changeBg statement"
         };
     }
 
+SayStatement
+    = speaker:SpeakerLiteral ":" content:StringLiteral __ args:ArgList? EOS {
+        args = optionalList(args);
+        args = processVocalFileName(args);
+
+        return {
+            command: commandType.say,
+            commandRaw: "say",
+            content: content.trim(),
+            args: [{ key: "speaker", value: speaker }].concat(args),
+        }
+    }
+    / content:SpeakerLiteral __ args:ArgList? EOS {
+        return {
+            command: commandType.say,
+            commandRaw: "say",
+            content: content.trim(),
+            args: optionalList(args),
+        }
+    }
+
+SpeakerLiteral
+    = $SpeakerCharacter*
+
+SpeakerCharacter
+    = !(":" / LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
 
 // ----- Unicode Character Categories -----
 //
