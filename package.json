@@ -3,7 +3,8 @@
     "version": "5.0.0-alpha",
     "description": "WebGAL script parser",
     "scripts": {
-        "test": "vitest",
+        "test": "yarn parser && vitest",
+        "test-trace": "yarn parser --trace && vitest",
         "coverage": "vitest run --coverage",
         "build": "rimraf -rf ./build && rollup --config",
         "build-ci": "rollup --config",

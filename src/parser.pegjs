@@ -47,6 +47,10 @@
         return value !== null ? value : [];
     }
 
+    function filterNulls(value) {
+        return value.filter(function(element) { return element !== null; });
+    }
+
     function processVocalFileName(args) {
         return args.map((arg) => {
             if (arg.key.toLowerCase().match(/.ogg|.mp3|.wav/)) {
@@ -58,6 +62,13 @@
             return arg;
         });
     }
+
+    function processNone(content) {
+        if (content === "" || content.toLowerCase() === "none") {
+            return "";
+        }
+        return content;
+    }
 }}
 
 // ----- Entrypoint -----
@@ -67,7 +78,7 @@ Start
 
 Program
     = body:SourceElements? {
-        return optionalList(body);
+        return filterNulls(optionalList(body));
     }
 
 SourceElements
@@ -82,21 +93,30 @@ SourceElement "source element"
 // ----- Arguments -----
 
 ArgList "arguments"
-    = head:Arg tail:(__ Arg)* {
+    = head:Arg tail:(&__ Arg)* {
         return buildList(head, tail, 1);
     }
 
 Arg "argument"
-    = ArgStart @ArgBody
+    = &__ ArgStart @ArgBody
 
 ArgStart
-    = "-"
+    = " -"
 
 ArgBody
     = @ArgWithValue / @ArgWithoutValue
 
 ArgWithValue "argument with value"
     = key:ArgKey "=" value:StringLiteral {
+        if (value === "true" || value === "false") {
+            value = (value === "true");
+        } else {
+            const number = Number(value);
+            if (!isNaN(number)) {
+                value = number;
+            }
+        }
+
         return { key, value };
     }
 
@@ -114,7 +134,39 @@ ReservedWord "reserve word"
 Keyword
     = ChangeBgToken
 
-ChangeBgToken   "'changeBg'"    = @"changeBg"   !IdentifierPart
+
+ChangeBgToken               "'changeBg'"            = @"changeBg"               !IdentifierPart
+ChangeFigureToken           "'changeFigure'"        = @"changeFigure"           !IdentifierPart
+BgmToken                    "'bgm'"                 = @"bgm"                    !IdentifierPart
+VideoToken                  "'playVideo'"           = @"playVideo"              !IdentifierPart // NOT SAME
+PixiToken                   "'pixiPerform'"         = @"pixiPerform"            !IdentifierPart // NOT SAME
+PixiInitToken               "'pixiInit'"            = @"pixiInit"               !IdentifierPart
+IntroToken                  "'intro'"               = @"intro"                  !IdentifierPart
+MiniAvatarToken             "'miniAvatar'"          = @"miniAvatar"             !IdentifierPart
+ChangeSceneToken            "'changeScene'"         = @"changeScene"            !IdentifierPart
+ChooseToken                 "'choose'"              = @"choose"                 !IdentifierPart
+EndToken                    "'end'"                 = @"end"                    !IdentifierPart
+SetComplexAnimationToken    "'setComplexAnimation'" = @"setComplexAnimation"    !IdentifierPart
+SetFilterToken              "'setFilter'"           = @"setFilter"              !IdentifierPart
+LabelToken                  "'label'"               = @"label"                  !IdentifierPart
+JumpLabelToken              "'jumpLabel'"           = @"jumpLabel"              !IdentifierPart
+ChooseLabelToken            "'chooseLabel'"         = @"chooseLabel"            !IdentifierPart
+SetVarToken                 "'setVar'"              = @"setVar"                 !IdentifierPart
+IfToken                     "'if'"                  = @"if"                     !IdentifierPart
+CallSceneToken              "'callScene'"           = @"callScene"              !IdentifierPart
+ShowVarsToken               "'showVars'"            = @"showVars"               !IdentifierPart
+UnlockCgToken               "'unlockCg'"            = @"unlockCg"               !IdentifierPart
+UnlockBgmToken              "'unlockBgm'"           = @"unlockBgm"              !IdentifierPart
+FilmModeToken               "'filmMode'"            = @"filmMode"               !IdentifierPart
+SetTextboxToken             "'setTextbox'"          = @"setTextbox"             !IdentifierPart
+SetAnimationToken           "'setAnimation'"        = @"setAnimation"           !IdentifierPart
+PlayEffectToken             "'playEffect'"          = @"playEffect"             !IdentifierPart
+SetTempAnimationToken       "'setTempAnimation'"    = @"setTempAnimation"       !IdentifierPart
+CommentToken                "'comment'"             = @"comment"                !IdentifierPart
+SetTransformToken           "'setTransform'"        = @"setTransform"           !IdentifierPart
+SetTransitionToken          "'setTransition'"       = @"setTransition"          !IdentifierPart
+GetUserInputToken           "'getUserInput'"        = @"getUserInput"           !IdentifierPart
+
 
 /*
 Currently, we do not need to check all argument keys. But the key should be
@@ -143,6 +195,11 @@ StringLiteral "string"
     / '"' sequence:DoubleStringCharacter* '"' { return sequence.join(""); }
     / sequence:StringCharacter* { return sequence.join("") }
 
+StringLiteralAllowWhiteSpace "string allow white space"
+    = "'" sequence:SingleStringCharacter* "'" { return sequence.join(""); }
+    / '"' sequence:DoubleStringCharacter* '"' { return sequence.join(""); }
+    / sequence:StringCharacterAllowWhiteSpace* { return sequence.join(""); }
+
 SingleStringCharacter
     = !("'" / "\\" / LineTerminator) SourceCharacter { return text(); }
     / "\\" sequence:EscapeSequence { return sequence; }
@@ -152,6 +209,9 @@ DoubleStringCharacter
     / "\\" sequence:EscapeSequence { return sequence; }
 
 StringCharacter
+    = !(LineTerminator / EOS / WhiteSpace / ArgStart) SourceCharacter { return text(); }
+
+StringCharacterAllowWhiteSpace
     = !(LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
 
 // ----- String: Escape -----
@@ -260,6 +320,10 @@ WhiteSpace "whitespace"
     / "\uFEFF"
     / Zs
 
+// Mandatory white space
+_M_
+    = (WhiteSpace / LineTerminatorSequence)+
+
 __
     = (WhiteSpace / LineTerminatorSequence)*
 
@@ -280,6 +344,13 @@ EOF
 Statement "statement"
     = EmptyStatement
     / ChangeBgStatement
+    / ChangeFigureStatement
+    / BgmStatement
+    / VideoStatement
+    / PixiStatement
+    / PixiInitStatement
+    / MiniAvatarStatement
+    / ChangeSceneStatement
 // if all commands failed, it should be a say statement (either with or without ':')
     / SayStatement
 
@@ -289,33 +360,122 @@ EmptyStatement
     }
 
 ChangeBgStatement "changeBg statement"
-    = ChangeBgToken __ ":" fileName:StringLiteral __ args:ArgList? EOS {
+    = ChangeBgToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+        fileName = processNone(fileName.trim());
+
         return {
             command: commandType.changeBg,
             commandRaw: "changeBg",
-            content: fileName.trim(),
-            args: optionalList(args),
+            content: fileName,
+            args,
         };
     }
 
-SayStatement
-    = speaker:SpeakerLiteral ":" content:StringLiteral __ args:ArgList? EOS {
+ChangeFigureStatement "changeFigure statement"
+    = ChangeFigureToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.changeFigure,
+            commandRaw: "changeFigure",
+            content: processNone(fileName.trim()),
+            args,
+        };
+    }
+
+BgmStatement "bgm statement"
+    = BgmToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+        fileName = processNone(fileName.trim());
+
+        return {
+            command: commandType.bgm,
+            commandRaw: "bgm",
+            content: fileName,
+            args,
+        };
+    }
+
+VideoStatement "video statement"
+    = VideoToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+        fileName = processNone(fileName.trim());
+
+        return {
+            command: commandType.video,
+            commandRaw: "video",
+            content: fileName,
+            args,
+        };
+    }
+
+PixiStatement "pixi statement"
+    = PixiToken __ ":" performName:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.pixi,
+            commandRaw: "pixiPerform",
+            content: performName,
+            args,
+        };
+    }
+
+PixiInitStatement "pixiInit statement"
+    = PixiInitToken EOS {
+        return {
+            command: commandType.pixiInit,
+            commandRaw: "pixiInit",
+            content: "",
+            args: [],
+        };
+    }
+
+MiniAvatarStatement "miniAvatar statement"
+    = MiniAvatarToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.miniAvatar,
+            commandRaw: "miniAvatar",
+            content: processNone(fileName.trim()),
+            args,
+        };
+    }
+
+ChangeSceneStatement "changeScene statement"
+    = ChangeSceneToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.changeScene,
+            commandRaw: "changeScene",
+            content: processNone(fileName.trim()),
+            args,
+        };
+    }
+
+SayStatement "say statement"
+    = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
         args = optionalList(args);
         args = processVocalFileName(args);
 
         return {
             command: commandType.say,
-            commandRaw: "say",
+            commandRaw: speaker,
             content: content.trim(),
             args: [{ key: "speaker", value: speaker }].concat(args),
         }
     }
-    / content:SpeakerLiteral __ args:ArgList? EOS {
+    / content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
+        args = optionalList(args);
+
         return {
             command: commandType.say,
             commandRaw: "say",
             content: content.trim(),
-            args: optionalList(args),
+            args,
         }
     }
 
