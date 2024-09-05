@@ -1,28 +1,6 @@
-import { SceneParser, parserSyntaxError } from "../src/index";
-import { ADD_NEXT_ARG_LIST, SCRIPT_CONFIG } from "../src/config/scriptConfig";
-import { expect, test } from "vitest";
-import { commandType, ISentence } from "../src/interface/sceneInterface";
-import * as fsp from 'fs/promises'
-import { fileType } from "../src/interface/assets";
-
-function expectContainEqual(rawScene: any, expectedSentenceItem: any) {
-  const parser = new SceneParser((assetList) => {
-  }, (fileName, assetType) => {
-    return fileName;
-  }, ADD_NEXT_ARG_LIST, SCRIPT_CONFIG);
-
-  const result = parser.parse(rawScene, "start", "/start.txt");
-  expect(result.sentenceList).toContainEqual(expectedSentenceItem);
-}
-
-function expectThrow(rawScene: any) {
-  const parser = new SceneParser((assetList) => {
-  }, (fileName, assetType) => {
-    return fileName;
-  }, ADD_NEXT_ARG_LIST, SCRIPT_CONFIG);
-
-  expect(() => parser.parse(rawScene, "start", "/start.txt")).toThrow(parserSyntaxError);
-}
+import { test } from "vitest";
+import { commandType } from "../src/interface/sceneInterface";
+import { expectContainEqual, expectThrow } from './util';
 
 test("say-1", async () => {
   expectContainEqual(`
