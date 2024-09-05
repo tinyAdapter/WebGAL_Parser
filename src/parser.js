@@ -473,7 +473,9 @@ function peg$parse(input, options) {
         return buildList(head, tail, 1);
     };
   var peg$f4 = function(key, value) {
-        if (value === "true" || value === "false") {
+        if (value === "none") {
+            value = "";
+        } else if (value === "true" || value === "false") {
             value = (value === "true");
         } else {
             const number = Number(value);

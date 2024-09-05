@@ -108,7 +108,9 @@ ArgBody
 
 ArgWithValue "argument with value"
     = key:ArgKey "=" value:StringLiteral {
-        if (value === "true" || value === "false") {
+        if (value === "none") {
+            value = "";
+        } else if (value === "true" || value === "false") {
             value = (value === "true");
         } else {
             const number = Number(value);
