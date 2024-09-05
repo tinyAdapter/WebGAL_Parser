@@ -558,7 +558,7 @@ function peg$parse(input, options) {
 
         return {
             command: commandType.video,
-            commandRaw: "video",
+            commandRaw: "playVideo",
             content: fileName,
             args,
         };

@@ -406,7 +406,7 @@ VideoStatement "video statement"
 
         return {
             command: commandType.video,
-            commandRaw: "video",
+            commandRaw: "playVideo",
             content: fileName,
             args,
         };
