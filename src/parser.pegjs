@@ -517,6 +517,37 @@ EndStatement "end statement"
         };
     }
 
+SetComplexAnimationStatement "setComplexAnimation statement"
+    = SetComplexAnimationToken __ ":" animationName:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.setComplexAnimation,
+            commandRaw: "setComplexAnimation",
+            content: animationName,
+            args,
+        };
+    }
+
+SetFilterStatement "setFilter statement"
+    = SetFilterToken EOS {
+        return {
+            command: commandType.setFilter,
+            commandRaw: "setFilter",
+            content: "",
+            args: [],
+        };
+    }
+
+LabelStatement "label statement"
+    = LabelToken __ ":" labelName:StringLiteral EOS {
+        return {
+            command: commandType.label,
+            commandRaw: "label",
+            content: labelName,
+            args: [],
+        };
+    }
 
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
@@ -548,6 +579,9 @@ SpeakerCharacter
     = !(":" / LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
 
 
+/*****************************************************************************/
+/****************** ! REMEMBER TO ADD NEW STATEMENTS HERE ! ******************/
+/*****************************************************************************/
 Statement "statement"
     = EmptyStatement
     / ChangeBgStatement
@@ -560,8 +594,15 @@ Statement "statement"
     / ChangeSceneStatement
     / ChooseStatement
     / EndStatement
-// if all commands failed, it should be a say statement (either with or without ':')
+    / SetComplexAnimationStatement
+    / SetFilterStatement
+    / LabelStatement
+// if all commands failed, it should be a say statement
+// (either with or without ':')
     / SayStatement
+/*****************************************************************************/
+/****************** ! REMEMBER TO ADD NEW STATEMENTS HERE ! ******************/
+/*****************************************************************************/
 
 
 // ----- Unicode Character Categories -----
