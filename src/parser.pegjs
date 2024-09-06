@@ -353,6 +353,7 @@ Statement "statement"
     / PixiInitStatement
     / MiniAvatarStatement
     / ChangeSceneStatement
+    / ChooseStatement
 // if all commands failed, it should be a say statement (either with or without ':')
     / SayStatement
 
@@ -457,6 +458,68 @@ ChangeSceneStatement "changeScene statement"
             args,
         };
     }
+
+ChooseStatement "choose statement"
+    = ChooseToken __ ":" choices:ChoiceList EOS {
+        choices = optionalList(choices);
+
+        return {
+            command: commandType.choose,
+            commandRaw: "choose",
+            content: "",
+            args: [{ key: "choices", value: choices }],
+        };
+    }
+
+ChoiceList "choices"
+    = head:Choice tail:(ChoiceDelimiter Choice)* {
+        return buildList(head, tail, 1);
+    }
+
+ChoiceDelimiter
+    = "|"
+
+Choice "choice"
+    = "(" sexp:ShowExpression ")" "[" cexp:ClickExpression "]" "->" text:ChoiceTextLiteral ":" dest:ChoiceDestinationLiteral {
+        return {
+            showExpression: sexp,
+            clickExpression: cexp,
+            text,
+            destination: dest,
+        }
+    }
+    / text:ChoiceTextLiteral ":" dest:ChoiceDestinationLiteral {
+        return {
+            showExpression: "",
+            clickExpression: "",
+            text,
+            destination: dest,
+        }
+    }
+
+ShowExpression
+    = sequence:ShowExpressionCharacter* { return sequence.join(""); }
+
+ShowExpressionCharacter
+    = !(LineTerminator / EOS / ")") SourceCharacter { return text(); }
+
+ClickExpression
+    = sequence:ClickExpressionCharacter* { return sequence.join(""); }
+
+ClickExpressionCharacter
+    = !(LineTerminator / EOS / "]") SourceCharacter { return text(); }
+
+ChoiceTextLiteral
+    = $ChoiceTextCharacter*
+
+ChoiceTextCharacter
+    = !(LineTerminator / EOS / ":") SourceCharacter { return text(); }
+
+ChoiceDestinationLiteral
+    = $ChoiceDestinationCharacter*
+
+ChoiceDestinationCharacter
+    = !(LineTerminator / EOS / ChoiceDelimiter) SourceCharacter { return text(); }
 
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {

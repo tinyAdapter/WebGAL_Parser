@@ -2,7 +2,7 @@ import * as p from './parser';
 import { configParser, WebgalConfig } from './configParser/configParser';
 import { IAsset } from "./interface/sceneInterface";
 import { fileType } from "./interface/assets";
-
+import { SyntaxError as parserSyntaxError } from './parser';
 export { SyntaxError as parserSyntaxError } from './parser';
 
 export class SceneParser {
@@ -26,7 +26,7 @@ export class SceneParser {
         try {
             sentenceList = p.parse(rawScene);
         } catch (e) {
-            throw e;
+            throw parserSyntaxError(`ERROR: parsing scene "${rawScene}" error with ${e}`);
         }
 
         const result = { sentenceList };
