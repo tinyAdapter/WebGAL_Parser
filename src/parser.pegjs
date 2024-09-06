@@ -343,20 +343,6 @@ EOF
 
 // ----- Statements -----
 
-Statement "statement"
-    = EmptyStatement
-    / ChangeBgStatement
-    / ChangeFigureStatement
-    / BgmStatement
-    / VideoStatement
-    / PixiStatement
-    / PixiInitStatement
-    / MiniAvatarStatement
-    / ChangeSceneStatement
-    / ChooseStatement
-// if all commands failed, it should be a say statement (either with or without ':')
-    / SayStatement
-
 EmptyStatement
     = __ ";" Comment LineTerminatorSequence {
         return null;
@@ -521,6 +507,17 @@ ChoiceDestinationLiteral
 ChoiceDestinationCharacter
     = !(LineTerminator / EOS / ChoiceDelimiter) SourceCharacter { return text(); }
 
+EndStatement "end statement"
+    = EndToken EOS {
+        return {
+            command: commandType.end,
+            commandRaw: "end",
+            content: "",
+            args: [],
+        };
+    }
+
+
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
         args = optionalList(args);
@@ -549,6 +546,23 @@ SpeakerLiteral
 
 SpeakerCharacter
     = !(":" / LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
+
+
+Statement "statement"
+    = EmptyStatement
+    / ChangeBgStatement
+    / ChangeFigureStatement
+    / BgmStatement
+    / VideoStatement
+    / PixiStatement
+    / PixiInitStatement
+    / MiniAvatarStatement
+    / ChangeSceneStatement
+    / ChooseStatement
+    / EndStatement
+// if all commands failed, it should be a say statement (either with or without ':')
+    / SayStatement
+
 
 // ----- Unicode Character Categories -----
 //
