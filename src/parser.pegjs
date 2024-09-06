@@ -549,6 +549,16 @@ LabelStatement "label statement"
         };
     }
 
+JumpLabelStatement "jumpLabel statement"
+    = JumpLabelToken __ ":" labelName:StringLiteral EOS {
+        return {
+            command: commandType.jumpLabel,
+            commandRaw: "jumpLabel",
+            content: labelName,
+            args: [],
+        };
+    }
+
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
         args = optionalList(args);
@@ -597,6 +607,7 @@ Statement "statement"
     / SetComplexAnimationStatement
     / SetFilterStatement
     / LabelStatement
+    / JumpLabelStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
