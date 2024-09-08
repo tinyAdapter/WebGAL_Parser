@@ -119,7 +119,7 @@ ArgBody
     = @ArgWithValue / @ArgWithoutValue
 
 ArgWithValue "argument with value"
-    = key:ArgKey "=" value:StringLiteral {
+    = key:ArgKey "=" value:StringLiteralAllowWhiteSpace {
         if (value === "none") {
             value = "";
         } else if (value === "true" || value === "false") {

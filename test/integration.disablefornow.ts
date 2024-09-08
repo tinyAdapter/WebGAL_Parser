@@ -1,8 +1,8 @@
-import SceneParser from "../src/index";
+import { SceneParser } from "../src/index";
 import { ADD_NEXT_ARG_LIST, SCRIPT_CONFIG } from "../src/config/scriptConfig";
 import { expect, test } from "vitest";
 import { commandType, ISentence } from "../src/interface/sceneInterface";
-import * as fsp from 'fs/promises'
+import * as fsp from 'fs/promises';
 import { fileType } from "../src/interface/assets";
 
 
@@ -65,6 +65,7 @@ test("choose", async () => {
     }, ADD_NEXT_ARG_LIST, SCRIPT_CONFIG);
 
     const result = parser.parse(sceneText, "choose", "/choose.txt");
+    console.error(result.errors);
     const expectSentenceItem: ISentence = {
         command: commandType.choose,
         commandRaw: "choose",
@@ -86,10 +87,10 @@ test("long-script", async () => {
         return fileName;
     }, ADD_NEXT_ARG_LIST, SCRIPT_CONFIG);
 
-    console.log('line count:', sceneText.split('\n').length)
-    console.time('parse-time-consumed')
+    console.log('line count:', sceneText.split('\n').length);
+    console.time('parse-time-consumed');
     const result = parser.parse(sceneText, "start", "/start.txt");
-    console.timeEnd('parse-time-consumed')
+    console.timeEnd('parse-time-consumed');
     const expectSentenceItem: ISentence = {
         command: commandType.label,
         commandRaw: "label",
@@ -137,7 +138,7 @@ Game_key:0f86dstRf;
 Title_img:WebGAL_New_Enter_Image.png;
 Title_bgm:s_Title.mp3;
 Title_logos: 1.png | 2.png | Image Logo.png| -show -active=false -add=op! -count=3;This is a fake config, do not reference anything.
-  `)
+  `);
     expect(configFesult).toContainEqual({
         command: 'Title_logos',
         args: ['1.png', '2.png', 'Image Logo.png'],
@@ -147,8 +148,8 @@ Title_logos: 1.png | 2.png | Image Logo.png| -show -active=false -add=op! -count
             { key: 'add', value: 'op!' },
             { key: 'count', value: 3 },
         ]
-    })
-})
+    });
+});
 
 test("config-stringify", async () => {
     const parser = new SceneParser((assetList) => {
@@ -162,9 +163,9 @@ Game_key:0f86dstRf;
 Title_img:WebGAL_New_Enter_Image.png;
 Title_bgm:s_Title.mp3;
 Title_logos: 1.png | 2.png | Image Logo.png| -show -active=false -add=op! -count=3;This is a fake config, do not reference anything.
-  `)
+  `);
     const stringifyResult = parser.stringifyConfig(configFesult);
-    const configResult2 = parser.parseConfig(stringifyResult)
+    const configResult2 = parser.parseConfig(stringifyResult);
     expect(configResult2).toContainEqual({
         command: 'Title_logos',
         args: ['1.png', '2.png', 'Image Logo.png'],
@@ -174,8 +175,8 @@ Title_logos: 1.png | 2.png | Image Logo.png| -show -active=false -add=op! -count
             { key: 'add', value: 'op!' },
             { key: 'count', value: 3 },
         ]
-    })
-})
+    });
+});
 
 
 test("say statement", async () => {
@@ -184,7 +185,7 @@ test("say statement", async () => {
         return fileName;
     }, ADD_NEXT_ARG_LIST, SCRIPT_CONFIG);
 
-    const result = parser.parse(`say:123 -speaker=xx;`, 'test', 'test')
+    const result = parser.parse(`say:123 -speaker=xx;`, 'test', 'test');
     expect(result.sentenceList).toContainEqual({
         command: commandType.say,
         commandRaw: "say",
@@ -192,5 +193,5 @@ test("say statement", async () => {
         args: [{ key: 'speaker', value: 'xx' }],
         sentenceAssets: [],
         subScene: []
-    })
-})
+    });
+});
