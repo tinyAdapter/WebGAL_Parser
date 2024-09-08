@@ -2,7 +2,7 @@ import { test } from "vitest";
 import { commandType } from "../src/interface/sceneInterface";
 import { expectContainEqual, expectThrow } from './util';
 
-test("pixi-1", async () => {
+test("setTextbox-1", async () => {
     expectContainEqual(`
 setTextbox:hide; // 关闭文本框
 `, {
@@ -15,7 +15,7 @@ setTextbox:hide; // 关闭文本框
     });
 });
 
-test("pixi-1", async () => {
+test("setTextbox-2", async () => {
     expectContainEqual(`
 setTextbox:on; // 可以是除 hide 以外的任意值。
 `, {

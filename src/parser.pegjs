@@ -697,6 +697,29 @@ SetTextboxStatement "setTextbox statement"
         };
     }
 
+SetAnimationStatement "setAnimation statement"
+    = SetAnimationToken __ ":" content:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.setAnimation,
+            commandRaw: "setAnimation",
+            content,
+            args,
+        };
+    }
+
+SetTransitionStatement "setTransition statement"
+    = SetTransitionToken __ ":" args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.setTransition,
+            commandRaw: "setTransition",
+            content: "",
+            args,
+        };
+    }
 
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
@@ -754,6 +777,8 @@ Statement "statement"
     / UnlockBgmStatement
     / FilmModeStatement
     / SetTextboxStatement
+    / SetAnimationStatement
+    / SetTransitionStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
