@@ -651,6 +651,19 @@ ShowVarsStatement "showVars statement"
         };
     }
 
+UnlockCgStatement "unlockCg statement"
+    = UnlockCgToken __ ":" cgName:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.unlockCg,
+            commandRaw: "unlockCg",
+            content: cgName,
+            args,
+        };
+    }
+
+
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
         args = optionalList(args);
@@ -703,9 +716,11 @@ Statement "statement"
     / SetVarStatement
     / CallSceneStatement
     / ShowVarsStatement
+    / UnlockCgStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
+// if still cannot match, it should be an error
     / ERRORStatement
 /*****************************************************************************/
 /****************** ! REMEMBER TO ADD NEW STATEMENTS HERE ! ******************/
