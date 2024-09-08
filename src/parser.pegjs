@@ -179,7 +179,7 @@ ArgKey
     = $KeyCharacter+
 
 KeyCharacter
-    = !("=" / WhiteSpace / LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
+    = !("=" / BraceCharacterSequence / WhiteSpace / LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
 
 // ArgKeyword
 //     = NextToken
@@ -238,6 +238,12 @@ SingleEscapeCharacter
     / "r"  { return "\r"; }
     / "t"  { return "\t"; }
     / "v"  { return "\v"; }
+
+BraceCharacterSequence
+    = "{"
+    / "}"
+    / "("
+    / ")"
 
 NonEscapeCharacter
     = !(EscapeCharacter / LineTerminator) SourceCharacter { return text(); }
@@ -559,6 +565,61 @@ JumpLabelStatement "jumpLabel statement"
         };
     }
 
+SetVarStatement "setVar statement"
+    /* Internal variables */
+    = SetVarToken __ ":" kv:InternalArgWithValue args:ArgList? EOS {
+        // we prefix variableName and expression with `#` to separate it from
+        // user-defined arguments
+        args = optionalList(args);
+
+        return {
+            command: commandType.setVar,
+            commandRaw: "setVar",
+            content: "",
+            args: [
+                { key: "#variableName", value: kv.key },
+                { key: "#internalExpression", value: kv.value },
+            ].concat(args),
+        };
+    }
+    /* Other variables */
+    / SetVarToken __ ":" kv:ArgWithValue args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.setVar,
+            commandRaw: "setVar",
+            content: "",
+            args: [
+                { key: "#variableName", value: kv.key },
+                { key: "#expression", value: kv.value },
+            ].concat(args),
+        };
+    }
+
+InternalArgWithValue "argument with value"
+    = key:ArgKey "=" "(" value:InternalArgLiteral ")" {
+        if (value === "none") {
+            value = "";
+        } else if (value === "true" || value === "false") {
+            value = (value === "true");
+        } else {
+            const number = Number(value);
+            if (!isNaN(number)) {
+                value = number;
+            }
+        }
+
+        return { key, value };
+    }
+
+InternalArgLiteral "internal argument"
+    = $InternalArgCharacter+
+
+InternalArgCharacter
+    = !(")" / LineTerminator / EOS / "=") SourceCharacter { return text(); }
+
+
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
         args = optionalList(args);
@@ -608,6 +669,7 @@ Statement "statement"
     / SetFilterStatement
     / LabelStatement
     / JumpLabelStatement
+    / SetVarStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
