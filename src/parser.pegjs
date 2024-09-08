@@ -721,6 +721,19 @@ SetTransitionStatement "setTransition statement"
         };
     }
 
+PlayEffectStatement "playEffect statement"
+    = PlayEffectToken __ ":" name:StringLiteral args:ArgList? EOS {
+        name = processNone(name.trim());
+        args = optionalList(args);
+
+        return {
+            command: commandType.playEffect,
+            commandRaw: "playEffect",
+            content: name,
+            args,
+        };
+    }
+
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
         args = optionalList(args);
@@ -779,6 +792,7 @@ Statement "statement"
     / SetTextboxStatement
     / SetAnimationStatement
     / SetTransitionStatement
+    / PlayEffectStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
