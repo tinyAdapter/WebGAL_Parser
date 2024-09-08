@@ -484,7 +484,7 @@ ChoiceDelimiter
     = "|"
 
 Choice "choice"
-    = "(" sexp:ShowExpression ")" "[" cexp:ClickExpression "]" "->" text:ChoiceTextLiteral ":" dest:ChoiceDestinationLiteral {
+    = "(" sexp:NoParenthesisExpression ")" "[" cexp:NoBracketExpression "]" "->" text:ChoiceTextLiteral ":" dest:ChoiceDestinationLiteral {
         return {
             showExpression: sexp,
             clickExpression: cexp,
@@ -501,16 +501,16 @@ Choice "choice"
         }
     }
 
-ShowExpression
-    = sequence:ShowExpressionCharacter* { return sequence.join(""); }
+NoParenthesisExpression
+    = sequence:NoParenthesisExpressionCharacter* { return sequence.join(""); }
 
-ShowExpressionCharacter
+NoParenthesisExpressionCharacter
     = !(LineTerminator / EOS / ")") SourceCharacter { return text(); }
 
-ClickExpression
-    = sequence:ClickExpressionCharacter* { return sequence.join(""); }
+NoBracketExpression
+    = sequence:NoBracketExpressionCharacter* { return sequence.join(""); }
 
-ClickExpressionCharacter
+NoBracketExpressionCharacter
     = !(LineTerminator / EOS / "]") SourceCharacter { return text(); }
 
 ChoiceTextLiteral
@@ -734,6 +734,22 @@ PlayEffectStatement "playEffect statement"
         };
     }
 
+SetTempAnimationStatement "setTempAnimation statement"
+    = SetTempAnimationToken __ ":" "[" json:NoBracketExpression "]" args:ArgList? EOS {
+        // Here, we do a trick by directly check whether a bracket is in the
+        // expression since we don't want to add extra cost on parsing JSON.
+        // The direct check holds because the content will never encounter a
+        // close bracket.
+        args = optionalList(args);
+
+        return {
+            command: commandType.setTempAnimation,
+            commandRaw: "setTempAnimation",
+            content: `[${json}]`,
+            args,
+        };
+    }
+
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
         args = optionalList(args);
@@ -793,6 +809,7 @@ Statement "statement"
     / SetAnimationStatement
     / SetTransitionStatement
     / PlayEffectStatement
+    / SetTempAnimationStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
