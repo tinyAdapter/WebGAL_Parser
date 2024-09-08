@@ -176,7 +176,7 @@ SetTextboxToken             "'setTextbox'"          = @"setTextbox"             
 SetAnimationToken           "'setAnimation'"        = @"setAnimation"           !IdentifierPart
 PlayEffectToken             "'playEffect'"          = @"playEffect"             !IdentifierPart
 SetTempAnimationToken       "'setTempAnimation'"    = @"setTempAnimation"       !IdentifierPart
-CommentToken                "'comment'"             = @"comment"                !IdentifierPart
+CommentToken                "'comment'"             = @"comment"                !IdentifierPart // NO HANDLER
 SetTransformToken           "'setTransform'"        = @"setTransform"           !IdentifierPart
 SetTransitionToken          "'setTransition'"       = @"setTransition"          !IdentifierPart
 GetUserInputToken           "'getUserInput'"        = @"getUserInput"           !IdentifierPart
@@ -750,6 +750,19 @@ SetTempAnimationStatement "setTempAnimation statement"
         };
     }
 
+SetTransformStatement "setTransform statement"
+    = SetTransformToken __ ":" json:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.setTransform,
+            commandRaw: "setTransform",
+            content: json,
+            args,
+        };
+    }
+
+
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
         args = optionalList(args);
@@ -810,6 +823,7 @@ Statement "statement"
     / SetTransitionStatement
     / PlayEffectStatement
     / SetTempAnimationStatement
+    / SetTransformStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
