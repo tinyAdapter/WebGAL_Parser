@@ -762,6 +762,18 @@ SetTransformStatement "setTransform statement"
         };
     }
 
+GetUserInputStatement "getUserInput statement"
+    = GetUserInputToken __ ":" into:ArgKey args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.getUserInput,
+            commandRaw: "getUserInput",
+            content: into,
+            args,
+        };
+    }
+
 
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
@@ -824,6 +836,7 @@ Statement "statement"
     / PlayEffectStatement
     / SetTempAnimationStatement
     / SetTransformStatement
+    / GetUserInputStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
