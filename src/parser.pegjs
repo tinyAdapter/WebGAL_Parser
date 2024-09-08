@@ -687,6 +687,17 @@ FilmModeStatement "filmMode statement"
         };
     }
 
+SetTextboxStatement "setTextbox statement"
+    = SetTextboxToken __ ":" content:StringLiteral EOS {
+        return {
+            command: commandType.setTextbox,
+            commandRaw: "setTextbox",
+            content,
+            args: [],
+        };
+    }
+
+
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
         args = optionalList(args);
@@ -742,6 +753,7 @@ Statement "statement"
     / UnlockCgStatement
     / UnlockBgmStatement
     / FilmModeStatement
+    / SetTextboxStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
