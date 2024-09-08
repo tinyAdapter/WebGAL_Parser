@@ -20,3 +20,37 @@ end;
         }
     ]);
 });
+
+test("err-2", async () => {
+    expectContainEqual(`
+one command:is not affected -next;
+end:shouldNotAddContentHere -();
+another command:is not affected as well;
+`, [
+        {
+            command: commandType.say,
+            commandRaw: "one command",
+            content: "is not affected",
+            args: [
+                { key: "speaker", value: "one command" },
+                { key: "next", value: true }
+            ],
+            sentenceAssets: [],
+            subScene: []
+        }, {
+            command: commandType.say,
+            commandRaw: "another command",
+            content: "is not affected as well",
+            args: [
+                { key: "speaker", value: "another command" },
+            ],
+            sentenceAssets: [],
+            subScene: []
+        }
+    ], [
+        {
+            location: '36(3:1)..67(3:32)',
+            message: "unexpected statement `end:shouldNotAddContentHere -()`"
+        }
+    ]);
+});
