@@ -15,7 +15,7 @@ end;
         subScene: []
     }], [
         {
-            location: '1..32',
+            location: '1(2:1)..32(2:32)',
             message: "unexpected statement `end:shouldNotAddContentHere -()`"
         }
     ]);

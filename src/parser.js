@@ -6206,7 +6206,7 @@ function peg$parse(input, options) {
     let errors = [];
     function report(message, loc = location()) {
         errors.push({
-            location: loc.start.offset + ".." + loc.end.offset,
+            location: `${loc.start.offset}(${loc.start.line}:${loc.start.column})..${loc.end.offset}(${loc.end.line}:${loc.end.column})`,
             message,
         });
     }
