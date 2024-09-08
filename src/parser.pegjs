@@ -619,6 +619,16 @@ InternalArgLiteral "internal argument"
 InternalArgCharacter
     = !(")" / LineTerminator / EOS / "=") SourceCharacter { return text(); }
 
+CallSceneStatement "callScene statement"
+    = CallSceneToken __ ":" sceneName:StringLiteral EOS {
+        return {
+            command: commandType.callScene,
+            commandRaw: "callScene",
+            content: sceneName,
+            args: [],
+        };
+    }
+
 
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
@@ -670,6 +680,7 @@ Statement "statement"
     / LabelStatement
     / JumpLabelStatement
     / SetVarStatement
+    / CallSceneStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
