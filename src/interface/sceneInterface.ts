@@ -73,6 +73,14 @@ export interface ISentence {
 }
 
 /**
+ * 错误信息
+ */
+export interface IError {
+  location: string; // 错误位置
+  message: string; // 错误消息
+}
+
+/**
  * 场景接口
  * @interface IScene
  */

@@ -64,9 +64,12 @@ changeBg:4-4-4.jpg -transform={"hello":"world"} ; 不加单引号也可以，但
 });
 
 test("changeBg-5", async () => {
-  expectThrow(`
+  expectContainEqual(`
 changeBg:5.jpg -transform="{"hello": "world"}"    ; 显然这个会解析失败
-`);
+`, [], [{
+    location: '1..47',
+    message: "unexpected statement `changeBg:5.jpg -transform=\"{\"hello\": \"world\"}\"`"
+  }]);
 });
 
 test("changeBg-6", async () => {

@@ -22,16 +22,14 @@ export class SceneParser {
     }
 
     public parse(rawScene: string, sceneName: string, sceneUrl: string) {
-        let sentenceList;
+        let result;
         try {
-            sentenceList = p.parse(rawScene);
+            result = p.parse(rawScene);
         } catch (e) {
             throw parserSyntaxError(`ERROR: parsing scene "${rawScene}" error with ${e}`);
         }
 
-        const result = { sentenceList };
-
-        result.sentenceList.map((sentence) => {
+        result.sentenceList.forEach((sentence) => {
             sentence.sentenceAssets = [];
             sentence.subScene = [];
         });

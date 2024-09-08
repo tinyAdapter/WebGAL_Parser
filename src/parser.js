@@ -53,7 +53,7 @@
     }
 
     function filterNulls(value) {
-        return value.filter(function(element) { return element !== null; });
+        return value.filter(function(element) { return element != null; });
     }
 
     function processVocalFileName(args) {
@@ -324,6 +324,7 @@ function peg$parse(input, options) {
   var peg$c74 = "sceneName";
   var peg$c75 = "speaker";
   var peg$c76 = "content";
+  var peg$c77 = "err";
 
   var peg$r0 = /^[(-)={}]/;
   var peg$r1 = /^['\\]/;
@@ -499,7 +500,7 @@ function peg$parse(input, options) {
   var peg$e144 = peg$classExpectation(["_", ["\u203F", "\u2040"], "\u2054", ["\uFE33", "\uFE34"], ["\uFE4D", "\uFE4F"], "\uFF3F"], false, false);
   var peg$e145 = peg$classExpectation([" ", "\xA0", "\u1680", ["\u2000", "\u200A"], "\u202F", "\u205F", "\u3000"], false, false);
 
-  var peg$f0 = function(program) { return program; };
+  var peg$f0 = function(program) { return { sentenceList: program, errors }; };
   var peg$f1 = function(body) {
         return filterNulls(optionalList(body));
     };
@@ -796,6 +797,7 @@ function peg$parse(input, options) {
         }
     };
   var peg$f62 = function() { return text(); };
+  var peg$f63 = function(err) { report("unexpected statement `" + err + "`"); };
   var peg$currPos = options.peg$currPos | 0;
   var peg$savedPos = peg$currPos;
   var peg$posDetailsCache = [{ line: 1, column: 1 }];
@@ -5267,6 +5269,9 @@ function peg$parse(input, options) {
                                       s0 = peg$parseShowVarsStatement();
                                       if (s0 === peg$FAILED) {
                                         s0 = peg$parseSayStatement();
+                                        if (s0 === peg$FAILED) {
+                                          s0 = peg$parseERRORStatement();
+                                        }
                                       }
                                     }
                                   }
@@ -5290,6 +5295,93 @@ function peg$parse(input, options) {
       s1 = peg$FAILED;
       if (peg$silentFails === 0) { peg$fail(peg$e134); }
     }
+
+    return s0;
+  }
+
+  function peg$parseERRORStatement() {
+    var s0, s1, s2, s3, s4, s5;
+
+    s0 = peg$currPos;
+    s1 = peg$currPos;
+    s2 = [];
+    s3 = peg$currPos;
+    s4 = peg$currPos;
+    peg$silentFails++;
+    s5 = peg$parseEOS();
+    peg$silentFails--;
+    if (s5 === peg$FAILED) {
+      s4 = undefined;
+    } else {
+      peg$currPos = s4;
+      s4 = peg$FAILED;
+    }
+    if (s4 !== peg$FAILED) {
+      if (input.length > peg$currPos) {
+        s5 = input.charAt(peg$currPos);
+        peg$currPos++;
+      } else {
+        s5 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$e96); }
+      }
+      if (s5 !== peg$FAILED) {
+        s4 = [s4, s5];
+        s3 = s4;
+      } else {
+        peg$currPos = s3;
+        s3 = peg$FAILED;
+      }
+    } else {
+      peg$currPos = s3;
+      s3 = peg$FAILED;
+    }
+    if (s3 !== peg$FAILED) {
+      while (s3 !== peg$FAILED) {
+        s2.push(s3);
+        s3 = peg$currPos;
+        s4 = peg$currPos;
+        peg$silentFails++;
+        s5 = peg$parseEOS();
+        peg$silentFails--;
+        if (s5 === peg$FAILED) {
+          s4 = undefined;
+        } else {
+          peg$currPos = s4;
+          s4 = peg$FAILED;
+        }
+        if (s4 !== peg$FAILED) {
+          if (input.length > peg$currPos) {
+            s5 = input.charAt(peg$currPos);
+            peg$currPos++;
+          } else {
+            s5 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$e96); }
+          }
+          if (s5 !== peg$FAILED) {
+            s4 = [s4, s5];
+            s3 = s4;
+          } else {
+            peg$currPos = s3;
+            s3 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s3;
+          s3 = peg$FAILED;
+        }
+      }
+    } else {
+      s2 = peg$FAILED;
+    }
+    if (s2 !== peg$FAILED) {
+      s1 = input.substring(s1, peg$currPos);
+    } else {
+      s1 = s2;
+    }
+    if (s1 !== peg$FAILED) {
+      peg$savedPos = s0;
+      s1 = peg$f63(s1);
+    }
+    s0 = s1;
 
     return s0;
   }
@@ -5447,6 +5539,16 @@ function peg$parse(input, options) {
 
     return s0;
   }
+
+
+    // ----- Error Handling -----
+    let errors = [];
+    function report(message, loc = location()) {
+        errors.push({
+            location: loc.start.offset + ".." + loc.end.offset,
+            message,
+        });
+    }
 
   peg$result = peg$startRuleFunction();
 

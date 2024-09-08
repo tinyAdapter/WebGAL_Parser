@@ -48,7 +48,7 @@
     }
 
     function filterNulls(value) {
-        return value.filter(function(element) { return element !== null; });
+        return value.filter(function(element) { return element != null; });
     }
 
     function processVocalFileName(args) {
@@ -71,10 +71,22 @@
     }
 }}
 
+{
+    // ----- Error Handling -----
+    let errors = [];
+    function report(message, loc = location()) {
+        errors.push({
+            location: loc.start.offset + ".." + loc.end.offset,
+            message,
+        });
+    }
+}
+
+
 // ----- Entrypoint -----
 
 Start
-    = __ program:Program __ EOF { return program; }
+    = __ program:Program __ EOF { return { sentenceList: program, errors }; }
 
 Program
     = body:SourceElements? {
@@ -694,9 +706,11 @@ Statement "statement"
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
+    / ERRORStatement
 /*****************************************************************************/
 /****************** ! REMEMBER TO ADD NEW STATEMENTS HERE ! ******************/
 /*****************************************************************************/
+ERRORStatement = err:$(!EOS .)+ { report("unexpected statement `" + err + "`"); };
 
 
 // ----- Unicode Character Categories -----

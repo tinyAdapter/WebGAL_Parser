@@ -2,12 +2,12 @@
 import { SceneParser, parserSyntaxError } from "../src/index";
 import { ADD_NEXT_ARG_LIST, SCRIPT_CONFIG } from "../src/config/scriptConfig";
 import { expect } from "vitest";
-import { ISentence } from "../src/interface/sceneInterface";
+import { IError, ISentence } from "../src/interface/sceneInterface";
 import { chai } from 'vitest';
 
 chai.config.truncateThreshold = 100000;
 
-export function expectContainEqual(rawScene: string, expectedSentenceItem: ISentence | Array<ISentence>) {
+export function expectContainEqual(rawScene: string, expectedSentenceItem: ISentence | Array<ISentence>, errors: Array<IError> = []) {
     const parser = new SceneParser((assetList) => {
     }, (fileName, assetType) => {
         return fileName;
@@ -18,6 +18,12 @@ export function expectContainEqual(rawScene: string, expectedSentenceItem: ISent
         expectedSentenceItem.forEach((s) => expect(result.sentenceList).toContainEqual(s));
     } else {
         expect(result.sentenceList).toContainEqual(expectedSentenceItem);
+    }
+
+    if (errors) {
+        for (const error of errors) {
+            expect(result.errors).toContainEqual(error);
+        }
     }
 }
 
