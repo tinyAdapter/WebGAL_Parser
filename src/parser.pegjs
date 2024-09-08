@@ -652,13 +652,25 @@ ShowVarsStatement "showVars statement"
     }
 
 UnlockCgStatement "unlockCg statement"
-    = UnlockCgToken __ ":" cgName:StringLiteral args:ArgList? EOS {
+    = UnlockCgToken __ ":" name:StringLiteral args:ArgList? EOS {
         args = optionalList(args);
 
         return {
             command: commandType.unlockCg,
             commandRaw: "unlockCg",
-            content: cgName,
+            content: name,
+            args,
+        };
+    }
+
+UnlockBgmStatement "unlockBgm statement"
+    = UnlockBgmToken __ ":" name:StringLiteral args:ArgList? EOS {
+        args = optionalList(args);
+
+        return {
+            command: commandType.unlockBgm,
+            commandRaw: "unlockBgm",
+            content: name,
             args,
         };
     }
@@ -717,6 +729,7 @@ Statement "statement"
     / CallSceneStatement
     / ShowVarsStatement
     / UnlockCgStatement
+    / UnlockBgmStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
