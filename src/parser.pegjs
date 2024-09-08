@@ -675,6 +675,17 @@ UnlockBgmStatement "unlockBgm statement"
         };
     }
 
+FilmModeStatement "filmMode statement"
+    = FilmModeToken __ ":" content:StringLiteralAllowWhiteSpace EOS {
+        content = processNone(content.trim());
+
+        return {
+            command: commandType.filmMode,
+            commandRaw: "filmMode",
+            content,
+            args: [],
+        };
+    }
 
 SayStatement "say statement"
     = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
@@ -730,6 +741,7 @@ Statement "statement"
     / ShowVarsStatement
     / UnlockCgStatement
     / UnlockBgmStatement
+    / FilmModeStatement
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
