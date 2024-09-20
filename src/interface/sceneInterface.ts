@@ -45,7 +45,7 @@ export enum commandType {
  */
 export interface arg {
   key: string; // 参数键
-  value: string | boolean | number; // 参数值
+  value: string | boolean | number | Array<object>; // 参数值
 }
 
 /**

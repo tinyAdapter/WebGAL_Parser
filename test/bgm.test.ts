@@ -1,6 +1,7 @@
 import { test } from "vitest";
 import { commandType } from "../src/interface/sceneInterface";
 import { expectContainEqual, expectThrow } from './util';
+import { fileType } from "../src/interface/assets";
 
 test("bgm-1", async () => {
     expectContainEqual(`
@@ -10,7 +11,7 @@ bgm:夏影.mp3;
         commandRaw: "bgm",
         content: "夏影.mp3",
         args: [],
-        sentenceAssets: [],
+        sentenceAssets: [{ name: '夏影.mp3', url: '夏影.mp3', lineNumber: 0, type: fileType.bgm }],
         subScene: []
     });
 });
@@ -23,7 +24,7 @@ bgm:夏影.mp3 -volume=30;
         commandRaw: "bgm",
         content: "夏影.mp3",
         args: [{ key: "volume", value: 30 }],
-        sentenceAssets: [],
+        sentenceAssets: [{ name: '夏影.mp3', url: '夏影.mp3', lineNumber: 0, type: fileType.bgm }],
         subScene: []
     });
 });
@@ -36,7 +37,7 @@ bgm:夏影.mp3 -enter=3000;
         commandRaw: "bgm",
         content: "夏影.mp3",
         args: [{ key: "enter", value: 3000 }],
-        sentenceAssets: [],
+        sentenceAssets: [{ name: '夏影.mp3', url: '夏影.mp3', lineNumber: 0, type: fileType.bgm }],
         subScene: []
     });
 });

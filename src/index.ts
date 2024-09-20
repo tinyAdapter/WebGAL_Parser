@@ -3,6 +3,10 @@ import { configParser, WebgalConfig } from './configParser/configParser';
 import { IAsset } from "./interface/sceneInterface";
 import { fileType } from "./interface/assets";
 import { SyntaxError as parserSyntaxError } from './parser';
+import { contentParser } from './scriptParser/contentParser';
+import { assetsScanner } from './scriptParser/assetsScanner';
+import { subSceneScanner } from './scriptParser/subSceneScanner';
+import { uniqWith } from 'lodash';
 export { SyntaxError as parserSyntaxError } from './parser';
 
 export class SceneParser {
@@ -29,9 +33,30 @@ export class SceneParser {
             throw parserSyntaxError(`ERROR: parsing scene "${rawScene}" error with ${e}`);
         }
 
+        let assetsList: Array<IAsset> = []; // 场景资源列表
+        let subSceneList: Array<string> = []; // 子场景列表
+
+        // 开始资源的预加载
+        assetsList = uniqWith(assetsList); // 去重
+        this.assetsPrefetcher(assetsList);
+
         result.sentenceList.forEach((sentence) => {
-            sentence.sentenceAssets = [];
-            sentence.subScene = [];
+            // 将语句内容里的文件名转为相对或绝对路径
+            const content = contentParser(sentence.content, sentence.command, this.assetSetter);
+
+            // 扫描语句携带资源
+            const sentenceAssets = assetsScanner(sentence.command, content, sentence.args);
+
+            // 扫描语句携带子场景
+            const subScene = subSceneScanner(sentence.command, content);
+
+            // 添加至语句解析结果
+            sentence.sentenceAssets = sentenceAssets;
+            sentence.subScene = subScene;
+
+            // 在这里解析出语句可能携带的资源和场景，合并到 assetsList 和 subSceneList
+            assetsList = [...assetsList, ...sentenceAssets];
+            subSceneList = [...subSceneList, ...subScene];
         });
 
         return result;

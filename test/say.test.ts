@@ -1,6 +1,7 @@
 import { test } from "vitest";
 import { commandType } from "../src/interface/sceneInterface";
 import { expectContainEqual, expectThrow } from './util';
+import { fileType } from "../src/interface/assets";
 
 test("say-1", async () => {
   expectContainEqual(`
@@ -105,7 +106,7 @@ test("say-7", async () => {
       { key: "vocal", value: "V3.ogg" },
       { key: "volume", value: 30 },
     ],
-    sentenceAssets: [],
+    sentenceAssets: [{ name: 'V3.ogg', url: 'V3.ogg', lineNumber: 0, type: fileType.vocal }],
     subScene: []
   });
 });

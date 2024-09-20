@@ -11,6 +11,6 @@ changeScene:Chapter-2.txt;
         content: "Chapter-2.txt",
         args: [],
         sentenceAssets: [],
-        subScene: []
+        subScene: ["Chapter-2.txt"]
     });
 });

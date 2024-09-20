@@ -1,6 +1,7 @@
 import { test } from "vitest";
 import { commandType } from "../src/interface/sceneInterface";
 import { expectContainEqual, expectThrow } from './util';
+import { fileType } from "../src/interface/assets";
 
 test("changeBg-1", async () => {
     expectContainEqual(`
@@ -13,7 +14,7 @@ changeBg:1.jpg -left="https://example-url.com" -next; 引号字符串允许包�
             { key: "left", value: "https://example-url.com" },
             { key: "next", value: true }
         ],
-        sentenceAssets: [],
+        sentenceAssets: [{ name: '1.jpg', url: '1.jpg', lineNumber: 0, type: fileType.background }],
         subScene: []
     });
 });
@@ -28,7 +29,7 @@ changeBg:2-1.jpg -left="    ; 不匹配的引号不会被解析为引号字符�
         args: [
             { key: "left", value: '"' }
         ],
-        sentenceAssets: [],
+        sentenceAssets: [{ name: '2-1.jpg', url: '2-1.jpg', lineNumber: 0, type: fileType.background }],
         subScene: []
     });
 });
@@ -43,7 +44,7 @@ changeBg:3_1.jpg -transform='{"hello": "world"}' ; JSON字符串
         args: [
             { key: "transform", value: '{"hello": "world"}' }
         ],
-        sentenceAssets: [],
+        sentenceAssets: [{ name: '3_1.jpg', url: '3_1.jpg', lineNumber: 0, type: fileType.background }],
         subScene: []
     });
 });
@@ -58,7 +59,7 @@ changeBg:4-4-4.jpg -transform={"hello":"world"} ; 不加单引号也可以，但
         args: [
             { key: "transform", value: '{"hello":"world"}' }
         ],
-        sentenceAssets: [],
+        sentenceAssets: [{ name: '4-4-4.jpg', url: '4-4-4.jpg', lineNumber: 0, type: fileType.background }],
         subScene: []
     });
 });
@@ -82,7 +83,7 @@ changeBg:6.jpg -transform="{\\"hello\\": \\"world\\"}" ; 但引号字符串支�
         args: [
             { key: "transform", value: '{"hello": "world"}' }
         ],
-        sentenceAssets: [],
+        sentenceAssets: [{ name: '6.jpg', url: '6.jpg', lineNumber: 0, type: fileType.background }],
         subScene: []
     });
 });
@@ -97,7 +98,7 @@ changeBg:7.jpg -next=true ; 不含引号的值直接解析
         args: [
             { key: "next", value: true }
         ],
-        sentenceAssets: [],
+        sentenceAssets: [{ name: '7.jpg', url: '7.jpg', lineNumber: 0, type: fileType.background }],
         subScene: []
     });
 });
@@ -113,7 +114,7 @@ changeBg:8.jpg -next -left=none ; 测试多个参数
             { key: "next", value: true },
             { key: "left", value: "" }
         ],
-        sentenceAssets: [],
+        sentenceAssets: [{ name: '8.jpg', url: '8.jpg', lineNumber: 0, type: fileType.background }],
         subScene: []
     });
 });
