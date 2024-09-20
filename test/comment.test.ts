@@ -1,16 +1,17 @@
 import { test } from "vitest";
 import { commandType } from "../src/interface/sceneInterface";
 import { expectContainEqual, expectThrow } from './util';
+import { fileType } from "../src/interface/assets";
 
-test("label-1", async () => {
-    expectContainEqual(`label:label_1; // 创建名为 label_1 的 label`,
+test("comment-1", async () => {
+    expectContainEqual(`
+`,
         [{
-            command: commandType.label,
-            commandRaw: "label",
-            content: "label_1",
+            command: commandType.comment,
+            commandRaw: "comment",
+            content: "",
             args: [],
             sentenceAssets: [],
             subScene: []
-        }]
-    );
+        }]);
 });

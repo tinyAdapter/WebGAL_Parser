@@ -7,18 +7,20 @@ import { chai } from 'vitest';
 
 chai.config.truncateThreshold = 100000;
 
-export function expectContainEqual(rawScene: string, expectedSentenceItem: ISentence | Array<ISentence>, errors: Array<IError> = []) {
+export function expectContainEqual(rawScene: string, expectedSentenceItem: Array<ISentence>, errors: Array<IError> = []) {
     const parser = new SceneParser((assetList) => {
     }, (fileName, assetType) => {
         return fileName;
     }, ADD_NEXT_ARG_LIST, SCRIPT_CONFIG);
 
     const result = parser.parse(rawScene, "start", "/start.txt");
-    if (Array.isArray(expectedSentenceItem)) {
-        expectedSentenceItem.forEach((s) => expect(result.sentenceList).toContainEqual(s));
-    } else {
-        expect(result.sentenceList).toContainEqual(expectedSentenceItem);
-    }
+
+    expect(result.sentenceList).toEqual(expectedSentenceItem);
+    // if (Array.isArray(expectedSentenceItem)) {
+    //     expectedSentenceItem.forEach((s) => expect(result.sentenceList).toContainEqual(s));
+    // } else {
+    //     expect(result.sentenceList).toEqual(expectedSentenceItem);
+    // }
 
     if (errors) {
         for (const error of errors) {

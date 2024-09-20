@@ -47,6 +47,10 @@
         return value !== null ? value : [];
     }
 
+    function optionalString(value) {
+        return value != null ? value : "";
+    }
+
     function filterNulls(value) {
         return value.filter(function(element) { return element != null; });
     }
@@ -86,17 +90,42 @@
 // ----- Entrypoint -----
 
 Start
-    = __ program:Program __ EOF { return { sentenceList: program, errors }; }
+    = program:Program EOF { return { sentenceList: program, errors }; }
+    / program:Program REPORT { return { sentenceList: program, errors }; }
+
+REPORT
+    = .+ { report("parsing cannot preceed"); }
 
 Program
     = body:SourceElements? {
-        return filterNulls(optionalList(body));
+        return optionalList(body);
     }
 
 SourceElements
-    = head:SourceElement tail:(__ SourceElement)* {
+    = head:SourceElement CommentSegment? tail:(SourceElementTail)* {
         return buildList(head, tail, 1);
     }
+
+SourceElementTail
+    = EOS SourceElement CommentSegment?
+    / SKIPToNextStatement SourceElement CommentSegment?
+
+SKIPToNextStatement
+    = REPORTNonCompletedParsing LineTerminator
+
+REPORTNonCompletedParsing
+    = NonLineTerminator+ {
+        report("non-completed parsing");
+    }
+
+NonLineTerminator
+    = !(LineTerminatorSequence) SourceCharacter
+
+CommentSymbol
+    = ";"
+
+CommentSegment
+    = _ CommentSymbol @$Comment
 
 SourceElement "source element"
     = Statement
@@ -120,6 +149,8 @@ ArgBody
 
 ArgWithValue "argument with value"
     = key:ArgKey "=" value:StringLiteralAllowWhiteSpace {
+        value = value.trim()
+
         if (value === "none") {
             value = "";
         } else if (value === "true" || value === "false") {
@@ -191,7 +222,7 @@ ArgKey
     = $KeyCharacter+
 
 KeyCharacter
-    = !("=" / BraceCharacterSequence / WhiteSpace / LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
+    = !(CommentSymbol / "=" / BraceCharacterSequence / WhiteSpace / LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
 
 // ArgKeyword
 //     = NextToken
@@ -223,10 +254,10 @@ DoubleStringCharacter
     / "\\" sequence:EscapeSequence { return sequence; }
 
 StringCharacter
-    = !(LineTerminator / EOS / WhiteSpace / ArgStart) SourceCharacter { return text(); }
+    = !(CommentSymbol / LineTerminator / EOS / WhiteSpace / ArgStart) SourceCharacter { return text(); }
 
 StringCharacterAllowWhiteSpace
-    = !(LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
+    = !(CommentSymbol / LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
 
 // ----- String: Escape -----
 
@@ -351,10 +382,11 @@ _
     = (WhiteSpace)*
 
 Comment
-    = (!LineTerminator SourceCharacter)*
+    = $(!LineTerminator SourceCharacter)*
 
 EOS
-    = __ ";" Comment LineTerminatorSequence*
+    = _ ";" Comment LineTerminatorSequence
+    / _ LineTerminatorSequence
 
 EOF
     = !.
@@ -362,12 +394,27 @@ EOF
 // ----- Statements -----
 
 EmptyStatement
-    = __ ";" Comment LineTerminatorSequence {
-        return null;
+    = _ comment:CommentSegment {
+        comment = optionalString(comment);
+
+        return {
+            command: commandType.comment,
+            commandRaw: "comment",
+            content: comment,
+            args: [],
+        }
+    }
+    / &(_ LineTerminatorSequence) {
+        return {
+            command: commandType.comment,
+            commandRaw: "comment",
+            content: "",
+            args: [],
+        }
     }
 
 ChangeBgStatement "changeBg statement"
-    = ChangeBgToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+    = ChangeBgToken __ ":" fileName:StringLiteral args:ArgList? {
         args = optionalList(args);
         fileName = processNone(fileName.trim());
 
@@ -380,7 +427,7 @@ ChangeBgStatement "changeBg statement"
     }
 
 ChangeFigureStatement "changeFigure statement"
-    = ChangeFigureToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+    = ChangeFigureToken __ ":" fileName:StringLiteral args:ArgList? {
         args = optionalList(args);
         fileName = processNone(fileName.trim());
 
@@ -393,7 +440,7 @@ ChangeFigureStatement "changeFigure statement"
     }
 
 BgmStatement "bgm statement"
-    = BgmToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+    = BgmToken __ ":" fileName:StringLiteral args:ArgList? {
         args = optionalList(args);
         fileName = processNone(fileName.trim());
 
@@ -406,7 +453,7 @@ BgmStatement "bgm statement"
     }
 
 VideoStatement "video statement"
-    = VideoToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+    = VideoToken __ ":" fileName:StringLiteral args:ArgList? {
         args = optionalList(args);
         fileName = processNone(fileName.trim());
 
@@ -419,7 +466,7 @@ VideoStatement "video statement"
     }
 
 PixiStatement "pixi statement"
-    = PixiToken __ ":" performName:StringLiteral args:ArgList? EOS {
+    = PixiToken __ ":" performName:StringLiteral args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -431,7 +478,7 @@ PixiStatement "pixi statement"
     }
 
 PixiInitStatement "pixiInit statement"
-    = PixiInitToken EOS {
+    = PixiInitToken {
         return {
             command: commandType.pixiInit,
             commandRaw: "pixiInit",
@@ -441,7 +488,7 @@ PixiInitStatement "pixiInit statement"
     }
 
 IntroStatement "intro statement"
-    = IntroToken __ ":" lines:StringLiteralAllowWhiteSpace args:ArgList? EOS {
+    = IntroToken __ ":" lines:StringLiteralAllowWhiteSpace args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -453,7 +500,7 @@ IntroStatement "intro statement"
     }
 
 MiniAvatarStatement "miniAvatar statement"
-    = MiniAvatarToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+    = MiniAvatarToken __ ":" fileName:StringLiteral args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -465,7 +512,7 @@ MiniAvatarStatement "miniAvatar statement"
     }
 
 ChangeSceneStatement "changeScene statement"
-    = ChangeSceneToken __ ":" fileName:StringLiteral args:ArgList? EOS {
+    = ChangeSceneToken __ ":" fileName:StringLiteral args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -477,7 +524,7 @@ ChangeSceneStatement "changeScene statement"
     }
 
 ChooseStatement "choose statement"
-    = ChooseToken __ ":" choices:ChoiceList EOS {
+    = ChooseToken __ ":" choices:ChoiceList {
         choices = optionalList(choices);
 
         return {
@@ -530,16 +577,16 @@ ChoiceTextLiteral
     = $ChoiceTextCharacter*
 
 ChoiceTextCharacter
-    = !(LineTerminator / EOS / ":") SourceCharacter { return text(); }
+    = !(CommentSymbol / LineTerminator / EOS / ":") SourceCharacter { return text(); }
 
 ChoiceDestinationLiteral
     = $ChoiceDestinationCharacter*
 
 ChoiceDestinationCharacter
-    = !(LineTerminator / EOS / VerticalBar) SourceCharacter { return text(); }
+    = !(CommentSymbol / LineTerminator / EOS / VerticalBar) SourceCharacter { return text(); }
 
 EndStatement "end statement"
-    = EndToken EOS {
+    = EndToken {
         return {
             command: commandType.end,
             commandRaw: "end",
@@ -549,7 +596,7 @@ EndStatement "end statement"
     }
 
 SetComplexAnimationStatement "setComplexAnimation statement"
-    = SetComplexAnimationToken __ ":" animationName:StringLiteral args:ArgList? EOS {
+    = SetComplexAnimationToken __ ":" animationName:StringLiteral args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -561,7 +608,7 @@ SetComplexAnimationStatement "setComplexAnimation statement"
     }
 
 SetFilterStatement "setFilter statement"
-    = SetFilterToken EOS {
+    = SetFilterToken {
         return {
             command: commandType.setFilter,
             commandRaw: "setFilter",
@@ -571,7 +618,7 @@ SetFilterStatement "setFilter statement"
     }
 
 LabelStatement "label statement"
-    = LabelToken __ ":" labelName:StringLiteral EOS {
+    = LabelToken __ ":" labelName:StringLiteral {
         return {
             command: commandType.label,
             commandRaw: "label",
@@ -581,7 +628,7 @@ LabelStatement "label statement"
     }
 
 JumpLabelStatement "jumpLabel statement"
-    = JumpLabelToken __ ":" labelName:StringLiteral EOS {
+    = JumpLabelToken __ ":" labelName:StringLiteral {
         return {
             command: commandType.jumpLabel,
             commandRaw: "jumpLabel",
@@ -592,7 +639,7 @@ JumpLabelStatement "jumpLabel statement"
 
 SetVarStatement "setVar statement"
     /* Internal variables */
-    = SetVarToken __ ":" kv:InternalArgWithValue args:ArgList? EOS {
+    = SetVarToken __ ":" kv:InternalArgWithValue args:ArgList? {
         // we prefix variableName and expression with `#` to separate it from
         // user-defined arguments
         args = optionalList(args);
@@ -608,7 +655,7 @@ SetVarStatement "setVar statement"
         };
     }
     /* Other variables */
-    / SetVarToken __ ":" kv:ArgWithValue args:ArgList? EOS {
+    / SetVarToken __ ":" kv:ArgWithValue args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -642,10 +689,10 @@ InternalArgLiteral "internal argument"
     = $InternalArgCharacter+
 
 InternalArgCharacter
-    = !(")" / LineTerminator / EOS / "=") SourceCharacter { return text(); }
+    = !(CommentSymbol / ")" / LineTerminator / EOS / "=") SourceCharacter { return text(); }
 
 CallSceneStatement "callScene statement"
-    = CallSceneToken __ ":" sceneName:StringLiteral EOS {
+    = CallSceneToken __ ":" sceneName:StringLiteral {
         return {
             command: commandType.callScene,
             commandRaw: "callScene",
@@ -655,7 +702,7 @@ CallSceneStatement "callScene statement"
     }
 
 ShowVarsStatement "showVars statement"
-    = ShowVarsToken EOS {
+    = ShowVarsToken {
         return {
             command: commandType.showVars,
             commandRaw: "showVars",
@@ -665,7 +712,7 @@ ShowVarsStatement "showVars statement"
     }
 
 UnlockCgStatement "unlockCg statement"
-    = UnlockCgToken __ ":" name:StringLiteral args:ArgList? EOS {
+    = UnlockCgToken __ ":" name:StringLiteral args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -677,7 +724,7 @@ UnlockCgStatement "unlockCg statement"
     }
 
 UnlockBgmStatement "unlockBgm statement"
-    = UnlockBgmToken __ ":" name:StringLiteral args:ArgList? EOS {
+    = UnlockBgmToken __ ":" name:StringLiteral args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -689,7 +736,7 @@ UnlockBgmStatement "unlockBgm statement"
     }
 
 FilmModeStatement "filmMode statement"
-    = FilmModeToken __ ":" content:StringLiteralAllowWhiteSpace EOS {
+    = FilmModeToken __ ":" content:StringLiteralAllowWhiteSpace {
         content = processNone(content.trim());
 
         return {
@@ -701,7 +748,7 @@ FilmModeStatement "filmMode statement"
     }
 
 SetTextboxStatement "setTextbox statement"
-    = SetTextboxToken __ ":" content:StringLiteral EOS {
+    = SetTextboxToken __ ":" content:StringLiteral {
         return {
             command: commandType.setTextbox,
             commandRaw: "setTextbox",
@@ -711,7 +758,7 @@ SetTextboxStatement "setTextbox statement"
     }
 
 SetAnimationStatement "setAnimation statement"
-    = SetAnimationToken __ ":" content:StringLiteral args:ArgList? EOS {
+    = SetAnimationToken __ ":" content:StringLiteral args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -723,7 +770,7 @@ SetAnimationStatement "setAnimation statement"
     }
 
 SetTransitionStatement "setTransition statement"
-    = SetTransitionToken __ ":" args:ArgList? EOS {
+    = SetTransitionToken __ ":" args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -735,7 +782,7 @@ SetTransitionStatement "setTransition statement"
     }
 
 PlayEffectStatement "playEffect statement"
-    = PlayEffectToken __ ":" name:StringLiteral args:ArgList? EOS {
+    = PlayEffectToken __ ":" name:StringLiteral args:ArgList? {
         name = processNone(name.trim());
         args = optionalList(args);
 
@@ -748,7 +795,7 @@ PlayEffectStatement "playEffect statement"
     }
 
 SetTempAnimationStatement "setTempAnimation statement"
-    = SetTempAnimationToken __ ":" "[" json:NoBracketExpression "]" args:ArgList? EOS {
+    = SetTempAnimationToken __ ":" "[" json:NoBracketExpression "]" args:ArgList? {
         // Here, we do a trick by directly check whether a bracket is in the
         // expression since we don't want to add extra cost on parsing JSON.
         // The direct check holds because the content will never encounter a
@@ -764,7 +811,7 @@ SetTempAnimationStatement "setTempAnimation statement"
     }
 
 SetTransformStatement "setTransform statement"
-    = SetTransformToken __ ":" json:StringLiteral args:ArgList? EOS {
+    = SetTransformToken __ ":" json:StringLiteral args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -776,7 +823,7 @@ SetTransformStatement "setTransform statement"
     }
 
 GetUserInputStatement "getUserInput statement"
-    = GetUserInputToken __ ":" into:ArgKey args:ArgList? EOS {
+    = GetUserInputToken __ ":" into:ArgKey args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -789,7 +836,7 @@ GetUserInputStatement "getUserInput statement"
 
 
 SayStatement "say statement"
-    = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
+    = speaker:SpeakerLiteral ":" content:StringLiteralAllowWhiteSpace args:ArgList? {
         args = optionalList(args);
         args = processVocalFileName(args);
 
@@ -800,7 +847,7 @@ SayStatement "say statement"
             args: [{ key: "speaker", value: speaker }].concat(args),
         }
     }
-    / content:StringLiteralAllowWhiteSpace args:ArgList? EOS {
+    / content:NonEmptyStringLiteralAllowWhiteSpace args:ArgList? {
         args = optionalList(args);
 
         return {
@@ -811,19 +858,21 @@ SayStatement "say statement"
         }
     }
 
+NonEmptyStringLiteralAllowWhiteSpace
+    = $StringCharacterAllowWhiteSpace+
+
 SpeakerLiteral
     = $SpeakerCharacter*
 
 SpeakerCharacter
-    = !(":" / LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
+    = !(CommentSymbol / ":" / LineTerminator / EOS / ArgStart) SourceCharacter { return text(); }
 
 
 /*****************************************************************************/
 /****************** ! REMEMBER TO ADD NEW STATEMENTS HERE ! ******************/
 /*****************************************************************************/
 Statement "statement"
-    = EmptyStatement
-    / ChangeBgStatement
+    = ChangeBgStatement
     / ChangeFigureStatement
     / BgmStatement
     / VideoStatement
@@ -854,6 +903,9 @@ Statement "statement"
 // if all commands failed, it should be a say statement
 // (either with or without ':')
     / SayStatement
+// if still cannot match, it may be a comment without command or an empty line
+// (which is also a comment)
+    / EmptyStatement
 // if still cannot match, it should be an error
     / ERRORStatement
 /*****************************************************************************/
