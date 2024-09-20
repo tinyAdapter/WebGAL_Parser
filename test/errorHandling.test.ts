@@ -33,9 +33,9 @@ end;`,
 });
 
 test("err-2", async () => {
-    expectContainEqual(`one command:is not affected -next;
+    expectContainEqual(`one command:is not affected -next
 end:shouldNotAddContentHere -()
-another command:is not affected as well;`, [
+another command:is not affected as well`, [
         {
             command: commandType.say,
             commandRaw: "one command",
@@ -67,7 +67,7 @@ another command:is not affected as well;`, [
         }
     ], [
         {
-            location: '38(2:4)..66(2:32)',
+            location: '37(2:4)..65(2:32)',
             message: "non-completed parsing"
         }
     ]);
