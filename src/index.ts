@@ -9,7 +9,7 @@ import { subSceneScanner } from './scriptParser/subSceneScanner';
 import { uniqWith } from 'lodash';
 export { SyntaxError as parserSyntaxError } from './parser';
 
-export class SceneParser {
+export default class SceneParser {
 
     private readonly assetsPrefetcher;
     private readonly assetSetter;

@@ -1,5 +1,5 @@
 
-import { SceneParser, parserSyntaxError } from "../src/index";
+import SceneParser, { parserSyntaxError } from "../src/index";
 import { ADD_NEXT_ARG_LIST, SCRIPT_CONFIG } from "../src/config/scriptConfig";
 import { expect } from "vitest";
 import { IError, ISentence } from "../src/interface/sceneInterface";

@@ -4,3 +4,4 @@ test
 rollup.config.js
 tsconfig.json
 tsconfig.node.json
+node_modules
