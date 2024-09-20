@@ -1,13 +1,13 @@
 {
     "name": "webgal-parser",
-    "version": "5.0.0-alpha",
+    "version": "5.0.0-beta.1",
     "description": "WebGAL script parser",
     "scripts": {
         "test": "yarn parser && vitest",
         "test-trace": "yarn parser --trace && vitest",
         "coverage": "vitest run --coverage",
-        "build": "rimraf -rf ./build && rollup --config",
-        "build-ci": "rollup --config",
+        "build": "yarn parser && rimraf -rf ./build && rollup --config",
+        "build-ci": "yarn parser && rollup --config",
         "debug": "tsx test/debug.ts",
         "dev": "tsx src/index.ts",
         "parser": "npx peggy -o src/parser.js --format es src/parser.pegjs -m"
