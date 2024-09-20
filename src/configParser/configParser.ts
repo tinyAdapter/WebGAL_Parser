@@ -43,7 +43,7 @@ function configLineParser(inputLine:string):IConfigItem{
   if (getOptionsResult) {
     const optionsRaw = newSentenceRaw.substring(getOptionsResult.index, newSentenceRaw.length);
     newSentenceRaw = newSentenceRaw.substring(0, getOptionsResult.index);
-    for (const e of argsParser(optionsRaw, (name,_)=>{return name})) {
+    for (const e of argsParser(optionsRaw, (name,_)=>{return name;})) {
       options.push(e);
     }
   }

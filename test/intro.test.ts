@@ -27,3 +27,16 @@ intro:回忆不需要适合的剧本，|反正一说出口，|都成了戏言。
         subScene: []
     });
 });
+
+test("intro-3", async () => {
+    expectContainEqual(`
+intro:你好|欢迎来到 WebGAL 的世界;
+`, {
+        command: commandType.intro,
+        commandRaw: "intro",
+        content: "你好|欢迎来到 WebGAL 的世界",
+        args: [],
+        sentenceAssets: [],
+        subScene: []
+    });
+});

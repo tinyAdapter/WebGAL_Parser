@@ -4174,7 +4174,7 @@ function peg$parse(input, options) {
         if (peg$silentFails === 0) { peg$fail(peg$e107); }
       }
       if (s3 !== peg$FAILED) {
-        s4 = peg$parseStringLiteral();
+        s4 = peg$parseStringLiteralAllowWhiteSpace();
         if (s4 !== peg$FAILED) {
           s5 = peg$parseArgList();
           if (s5 === peg$FAILED) {

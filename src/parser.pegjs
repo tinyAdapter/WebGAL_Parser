@@ -441,7 +441,7 @@ PixiInitStatement "pixiInit statement"
     }
 
 IntroStatement "intro statement"
-    = IntroToken __ ":" lines:StringLiteral args:ArgList? EOS {
+    = IntroToken __ ":" lines:StringLiteralAllowWhiteSpace args:ArgList? EOS {
         args = optionalList(args);
 
         return {
