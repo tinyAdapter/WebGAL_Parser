@@ -439,6 +439,18 @@ PixiInitStatement "pixiInit statement"
         };
     }
 
+IntroStatement "intro statement"
+    = IntroToken __ ":" lines:StringLiteral args:ArgList? EOS {
+        lines = optionalList(lines);
+
+        return {
+            command: commandType.intro,
+            commandRaw: "intro",
+            content: processNone(lines.trim()),
+            args,
+        };
+    }
+
 MiniAvatarStatement "miniAvatar statement"
     = MiniAvatarToken __ ":" fileName:StringLiteral args:ArgList? EOS {
         args = optionalList(args);
@@ -476,11 +488,11 @@ ChooseStatement "choose statement"
     }
 
 ChoiceList "choices"
-    = head:Choice tail:(ChoiceDelimiter Choice)* {
+    = head:Choice tail:(VerticalBar Choice)* {
         return buildList(head, tail, 1);
     }
 
-ChoiceDelimiter
+VerticalBar
     = "|"
 
 Choice "choice"
@@ -523,7 +535,7 @@ ChoiceDestinationLiteral
     = $ChoiceDestinationCharacter*
 
 ChoiceDestinationCharacter
-    = !(LineTerminator / EOS / ChoiceDelimiter) SourceCharacter { return text(); }
+    = !(LineTerminator / EOS / VerticalBar) SourceCharacter { return text(); }
 
 EndStatement "end statement"
     = EndToken EOS {
@@ -816,6 +828,7 @@ Statement "statement"
     / VideoStatement
     / PixiStatement
     / PixiInitStatement
+    / IntroStatement
     / MiniAvatarStatement
     / ChangeSceneStatement
     / ChooseStatement
