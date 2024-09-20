@@ -586,11 +586,12 @@ function peg$parse(input, options) {
     };
   var peg$f32 = function(fileName, args) {
         args = optionalList(args);
+        fileName = processNone(fileName.trim());
 
         return {
             command: commandType.changeFigure,
             commandRaw: "changeFigure",
-            content: processNone(fileName.trim()),
+            content: fileName,
             args,
         };
     };
@@ -635,7 +636,7 @@ function peg$parse(input, options) {
         };
     };
   var peg$f37 = function(lines, args) {
-        lines = optionalList(lines);
+        args = optionalList(args);
 
         return {
             command: commandType.intro,

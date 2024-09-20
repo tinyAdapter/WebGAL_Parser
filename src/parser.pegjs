@@ -382,11 +382,12 @@ ChangeBgStatement "changeBg statement"
 ChangeFigureStatement "changeFigure statement"
     = ChangeFigureToken __ ":" fileName:StringLiteral args:ArgList? EOS {
         args = optionalList(args);
+        fileName = processNone(fileName.trim());
 
         return {
             command: commandType.changeFigure,
             commandRaw: "changeFigure",
-            content: processNone(fileName.trim()),
+            content: fileName,
             args,
         };
     }
@@ -441,7 +442,7 @@ PixiInitStatement "pixiInit statement"
 
 IntroStatement "intro statement"
     = IntroToken __ ":" lines:StringLiteral args:ArgList? EOS {
-        lines = optionalList(lines);
+        args = optionalList(args);
 
         return {
             command: commandType.intro,
