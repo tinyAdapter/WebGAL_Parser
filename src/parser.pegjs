@@ -525,19 +525,27 @@ ChangeSceneStatement "changeScene statement"
 
 ChooseStatement "choose statement"
     = ChooseToken __ ":" choices:ChoiceList {
-        choices = optionalList(choices);
+        choices.choiceList = optionalList(choices.choiceList);
 
         return {
             command: commandType.choose,
             commandRaw: "choose",
             content: "",
-            args: [{ key: "choices", value: choices }],
+            args: [
+                { key: "choices", value: choices.choiceList },
+                { key: "contentRawRange", value: choices.contentRawRange }
+            ],
         };
     }
 
 ChoiceList "choices"
     = head:Choice tail:(VerticalBar Choice)* {
-        return buildList(head, tail, 1);
+        const loc = location();
+
+        return {
+            contentRawRange: [loc.start.offset, loc.end.offset],
+            choiceList: buildList(head, tail, 1)
+        };
     }
 
 VerticalBar

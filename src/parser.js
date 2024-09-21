@@ -696,17 +696,25 @@ function peg$parse(input, options) {
         };
     };
   var peg$f44 = function(choices) {
-        choices = optionalList(choices);
+        choices.choiceList = optionalList(choices.choiceList);
 
         return {
             command: commandType.choose,
             commandRaw: "choose",
             content: "",
-            args: [{ key: "choices", value: choices }],
+            args: [
+                { key: "choices", value: choices.choiceList },
+                { key: "contentRawRange", value: choices.contentRawRange }
+            ],
         };
     };
   var peg$f45 = function(head, tail) {
-        return buildList(head, tail, 1);
+        const loc = location();
+
+        return {
+            contentRawRange: [loc.start.offset, loc.end.offset],
+            choiceList: buildList(head, tail, 1)
+        };
     };
   var peg$f46 = function(sexp, cexp, text, dest) {
         return {

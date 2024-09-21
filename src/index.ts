@@ -1,6 +1,6 @@
 import * as p from './parser';
 import { configParser, WebgalConfig } from './configParser/configParser';
-import { IAsset } from "./interface/sceneInterface";
+import { commandType, IAsset } from "./interface/sceneInterface";
 import { fileType } from "./interface/assets";
 import { SyntaxError as parserSyntaxError } from './parser';
 import { contentParser } from './scriptParser/contentParser';
@@ -41,6 +41,12 @@ export default class SceneParser {
         this.assetsPrefetcher(assetsList);
 
         result.sentenceList.forEach((sentence) => {
+            // 为了向后兼容性，我们单独抽取choose命令的原始语句
+            if (sentence.command === commandType.choose) {
+                const r = sentence.args.find(obj => obj.key === 'contentRawRange');
+                sentence.content = rawScene.substring(r.value[0], r.value[1]);
+            }
+
             // 将语句内容里的文件名转为相对或绝对路径
             const content = contentParser(sentence.content, sentence.command, this.assetSetter);
 
